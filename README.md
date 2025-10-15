@@ -1,6 +1,8 @@
-# Solana Validator Fee Tracker
+# DoubleZero Fee Tracker
 
-A fast, modern web application that tracks Solana validator fee payments and outstanding debts across different epochs.
+A fast, modern web application that tracks DoubleZero validator fee payments and outstanding debts across different epochs.
+
+![DoubleZero Fee Tracker Screenshot](Screenshot%202025-10-16%20at%2001.49.48.png)
 
 ## Features
 
