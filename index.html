@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoubleZero Fee Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.7;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px 24px;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+        }
+
+        .stat-card p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px;
+            border-radius: 20px;
+            margin-bottom: 32px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 16px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #00d4ff;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 20px 24px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            vertical-align: middle;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+            font-weight: 700;
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.001);
+            transition: all 0.2s ease;
+        }
+
+        tr:hover td {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .validator-pubkey {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+            color: #00d4ff;
+            word-break: break-all;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 212, 255, 0.05) 100%);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 212, 255, 0.1);
+        }
+
+        .epoch-cell {
+            text-align: center;
+            padding: 16px 12px;
+            vertical-align: middle;
+        }
+
+        .paid {
+            color: #10b981;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(16, 185, 129, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transition: all 0.3s ease;
+            justify-content: center;
+            min-width: 100px;
+            margin: 0 auto;
+        }
+
+        .paid:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .unpaid {
+            color: #ef4444;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+            transition: all 0.3s ease;
+            justify-content: center;
+            min-width: 100px;
+            margin: 0 auto;
+        }
+
+        .unpaid:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .debt-amount {
+            color: #f59e0b;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(245, 158, 11, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            justify-content: center;
+            min-width: 100px;
+            margin: 0 auto;
+        }
+
+        .debt-amount:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .debt-amount.paid {
+            color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            justify-content: center;
+        }
+
+
+        .total-debt {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 24px 0;
+            border-radius: 12px;
+            color: #f59e0b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .loading i {
+            font-size: 2.5rem;
+            animation: spin 1s linear infinite;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 24px 0;
+            border-left: 4px solid #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .header p {
+                font-size: 1.1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .stat-card {
+                padding: 24px 20px;
+            }
+            
+            .controls {
+                padding: 24px 20px;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .filter-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .validator-pubkey {
+                font-size: 0.75rem;
+            }
+            
+            .table-header {
+                padding: 24px 20px;
+            }
+            
+            .table-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            th, td {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DoubleZero Fee Tracker</h1>
+            <p>Track DoubleZero fee payments and outstanding debts across epochs - automatically updates with new epochs</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <h3 id="total-validators">-</h3>
+                <p>Total Validators</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3 id="unpaid-validators">-</h3>
+                <p>Validators with Debt</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-alt"></i>
+                <h3 id="total-epochs">-</h3>
+                <p>Total Epochs</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-dollar-sign"></i>
+                <h3 id="total-debt">-</h3>
+                <p>Total Debt (USD)</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" class="search-box" id="searchInput" placeholder="Search by validator name or pubkey...">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Validators</button>
+                <button class="filter-btn" data-filter="unpaid">With Debt</button>
+                <button class="filter-btn" data-filter="paid">Paid Up</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-wrapper">
+                <div id="loadingIndicator" class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading validator data...</p>
+                </div>
+                <div id="errorMessage" class="error" style="display: none;"></div>
+                <div id="noDataMessage" class="no-data" style="display: none;">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No data available</p>
+                </div>
+                <table id="validatorTable" style="display: none;">
+                    <thead id="tableHeader">
+                        <tr>
+                            <th>Validator</th>
+                            <!-- Dynamic epoch headers will be inserted here -->
+                            <th>Total Debt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ValidatorFeeTracker {
+            constructor() {
+                this.data = [];
+                this.filteredData = [];
+                this.currentFilter = 'all';
+                this.availableEpochs = [];
+                this.validatorNames = {};
+                this.solPrice = 0;
+                this.init();
+            }
+
+            async init() {
+                // Load all data sources in parallel
+                await Promise.all([
+                    this.loadValidatorNames(),
+                    this.loadData(),
+                    this.loadSolPrice()
+                ]);
+                this.setupEventListeners();
+                this.render();
+            }
+
+            async loadValidatorNames() {
+                try {
+                    const response = await fetch('./info?' + Date.now());
+                    if (!response.ok) {
+                        console.warn('Could not load validator names file');
+                        return;
+                    }
+                    
+                    const text = await response.text();
+                    this.parseValidatorNames(text);
+                } catch (error) {
+                    console.warn('Error loading validator names:', error);
+                }
+            }
+
+            parseValidatorNames(text) {
+                const lines = text.split('\n');
+                let currentValidator = null;
+                let count = 0;
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    
+                    // Skip empty lines
+                    if (!trimmedLine) continue;
+                    
+                    if (trimmedLine.startsWith('Validator Identity:')) {
+                        currentValidator = trimmedLine.replace('Validator Identity:', '').trim();
+                    } else if (trimmedLine.startsWith('Name:') && currentValidator) {
+                        const name = trimmedLine.replace('Name:', '').trim();
+                        this.validatorNames[currentValidator] = name;
+                        count++;
+                    }
+                }
+                
+                console.log(`Loaded ${count} validator names`);
+            }
+
+            getValidatorDisplayName(pubkey) {
+                return this.validatorNames[pubkey] || pubkey;
+            }
+
+            async loadSolPrice() {
+                try {
+                    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+                    if (!response.ok) {
+                        console.warn('Could not load SOL price');
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    this.solPrice = data.solana?.usd || 0;
+                    console.log(`SOL price loaded: $${this.solPrice}`);
+                } catch (error) {
+                    console.warn('Error loading SOL price:', error);
+                }
+            }
+
+            async loadData() {
+                try {
+                    const response = await fetch('https://raw.githubusercontent.com/doublezerofoundation/fees/main/fees_and_payments.csv');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch data');
+                    }
+                    
+                    const csvText = await response.text();
+                    this.data = this.parseCSV(csvText);
+                    this.filteredData = [...this.data];
+                    
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('validatorTable').style.display = 'table';
+                    
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('errorMessage').innerHTML = 
+                        `<i class="fas fa-exclamation-triangle"></i> Error loading data: ${error.message}`;
+                }
+            }
+
+            parseCSV(csvText) {
+                const lines = csvText.trim().split('\n');
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
+                const data = [];
+
+                // Extract available epochs dynamically
+                this.availableEpochs = this.extractEpochs(headers);
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = this.parseCSVLine(lines[i]);
+                    if (values.length >= headers.length) {
+                        const row = {};
+                        headers.forEach((header, index) => {
+                            row[header] = values[index] || '';
+                        });
+                        data.push(row);
+                        
+                    }
+                }
+
+                return data;
+            }
+
+            extractEpochs(headers) {
+                const epochs = [];
+                const feeHeaders = headers.filter(h => h.startsWith('dz_fee_lamports_'));
+                
+                feeHeaders.forEach(header => {
+                    const epochMatch = header.match(/dz_fee_lamports_(\d+)/);
+                    if (epochMatch) {
+                        const epoch = epochMatch[1];
+                        // Only include epoch if there's a corresponding paid_ column
+                        if (headers.includes(`paid_${epoch}`)) {
+                            epochs.push(epoch);
+                        }
+                    }
+                });
+                
+                return epochs.sort((a, b) => parseInt(a) - parseInt(b));
+            }
+
+            parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                
+                result.push(current.trim().replace(/^"(.*)"$/, '$1'));
+                return result;
+            }
+
+            setupEventListeners() {
+                // Search functionality
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    this.filterData(e.target.value);
+                });
+
+                // Filter buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.dataset.filter;
+                        this.applyFilter();
+                    });
+                });
+            }
+
+            filterData(searchTerm) {
+                const term = searchTerm.toLowerCase();
+                this.filteredData = this.data.filter(row => {
+                    const pubkey = (row.pubkey || '').toLowerCase();
+                    const validatorName = this.getValidatorDisplayName(row.pubkey).toLowerCase();
+                    return pubkey.includes(term) || validatorName.includes(term);
+                });
+                this.applyFilter();
+            }
+
+            applyFilter() {
+                let filtered = [...this.filteredData];
+                
+                if (this.currentFilter === 'unpaid') {
+                    filtered = filtered.filter(row => this.hasUnpaidFees(row));
+                } else if (this.currentFilter === 'paid') {
+                    filtered = filtered.filter(row => !this.hasUnpaidFees(row));
+                }
+                
+                this.renderTable(filtered);
+                this.updateStats(filtered);
+            }
+
+            hasUnpaidFees(row) {
+                return this.availableEpochs.some(epoch => row[`paid_${epoch}`] === 'No');
+            }
+
+            getEpochDebt(row, epoch) {
+                const feeAmount = row[`dz_fee_lamports_${epoch}`];
+                const isPaid = row[`paid_${epoch}`] === 'Yes';
+                
+                if (feeAmount && feeAmount !== 'NA' && !isPaid) {
+                    return parseFloat(feeAmount) / 1e9; // Convert lamports to SOL
+                }
+                return 0;
+            }
+
+            getTotalDebt(row) {
+                return this.availableEpochs.reduce((total, epoch) => total + this.getEpochDebt(row, epoch), 0);
+            }
+
+            render() {
+                this.renderTableHeaders();
+                this.renderTable(this.filteredData);
+                this.updateStats(this.filteredData);
+            }
+
+            renderTableHeaders() {
+                const headerRow = document.querySelector('#tableHeader tr');
+                // Remove existing epoch headers (keep first 1 and last 1)
+                const existingHeaders = headerRow.querySelectorAll('th');
+                for (let i = existingHeaders.length - 2; i > 0; i--) {
+                    headerRow.removeChild(existingHeaders[i]);
+                }
+                
+                // Add dynamic epoch headers
+                this.availableEpochs.forEach(epoch => {
+                    const th = document.createElement('th');
+                    th.textContent = `Epoch ${epoch}`;
+                    headerRow.insertBefore(th, headerRow.lastElementChild);
+                });
+            }
+
+            renderTable(data) {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    document.getElementById('noDataMessage').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('noDataMessage').style.display = 'none';
+
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    const totalDebt = this.getTotalDebt(row);
+                    const validatorName = this.getValidatorDisplayName(row.pubkey);
+                    const hasName = this.validatorNames[row.pubkey];
+                    
+                    
+                    // Build epoch cells dynamically
+                    const epochCells = this.availableEpochs.map(epoch => 
+                        `<td class="epoch-cell">${this.renderEpochCell(row, epoch)}</td>`
+                    ).join('');
+                    
+                    tr.innerHTML = `
+                        <td class="validator-pubkey">
+                            ${hasName ? 
+                                `<div style="font-weight: 600; color: #ffffff; margin-bottom: 4px;">${validatorName}</div>
+                                 <div style="font-size: 0.75rem; opacity: 0.6;">${row.pubkey}</div>` :
+                                validatorName
+                            }
+                        </td>
+                        ${epochCells}
+                        <td class="epoch-cell">
+                            ${totalDebt > 0 ? 
+                                `<span class="unpaid"><i class="fas fa-exclamation-triangle"></i> ${totalDebt.toFixed(4)} SOL</span>` : 
+                                `<span class="paid"><i class="fas fa-check-circle"></i> Paid</span>`
+                            }
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(tr);
+                });
+            }
+
+            renderEpochCell(row, epoch) {
+                const isPaid = row[`paid_${epoch}`] === 'Yes';
+                const feeAmount = row[`dz_fee_lamports_${epoch}`];
+                
+                if (feeAmount === 'NA' || !feeAmount) {
+                    return '<span style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">N/A</span>';
+                }
+                
+                const solAmount = (parseFloat(feeAmount) / 1e9).toFixed(4);
+                
+                if (isPaid) {
+                    return `<span class="paid"><i class="fas fa-check-circle"></i> ${solAmount} SOL</span>`;
+                } else {
+                    return `<span class="unpaid"><i class="fas fa-exclamation-triangle"></i> ${solAmount} SOL</span>`;
+                }
+            }
+
+            updateStats(data) {
+                const totalValidators = data.length;
+                const unpaidValidators = data.filter(row => this.hasUnpaidFees(row)).length;
+                const totalEpochs = this.availableEpochs.length;
+                
+                const totalDebtSOL = data.reduce((sum, row) => sum + this.getTotalDebt(row), 0);
+                const totalDebtUSD = totalDebtSOL * this.solPrice;
+                
+                document.getElementById('total-validators').textContent = totalValidators.toLocaleString();
+                document.getElementById('unpaid-validators').textContent = unpaidValidators.toLocaleString();
+                document.getElementById('total-epochs').textContent = totalEpochs;
+                
+                if (this.solPrice > 0) {
+                    document.getElementById('total-debt').textContent = `$${totalDebtUSD.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+                } else {
+                    document.getElementById('total-debt').textContent = `${totalDebtSOL.toFixed(2)} SOL`;
+                }
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new ValidatorFeeTracker();
+        });
+    </script>
+</body>
+</html>
