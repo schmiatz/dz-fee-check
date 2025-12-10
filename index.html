@@ -612,14 +612,16 @@
                     const epochMatch = header.match(/dz_fee_lamports_(\d+)/);
                     if (epochMatch) {
                         const epoch = epochMatch[1];
-                        // Only include epoch if there's a corresponding paid_ column
-                        if (headers.includes(`paid_${epoch}`)) {
+                        // Only include epoch if there's a corresponding is_paid_ column
+                        if (headers.includes(`is_paid_${epoch}`)) {
                             epochs.push(epoch);
                         }
                     }
                 });
                 
-                return epochs.sort((a, b) => parseInt(a) - parseInt(b));
+                const sorted = epochs.sort((a, b) => parseInt(b) - parseInt(a)); // Sort descending (newest first)
+                console.log('Available epochs:', sorted);
+                return sorted;
             }
 
             parseCSVLine(line) {
@@ -685,12 +687,12 @@
             }
 
             hasUnpaidFees(row) {
-                return this.availableEpochs.some(epoch => row[`paid_${epoch}`] === 'No');
+                return this.availableEpochs.some(epoch => row[`is_paid_${epoch}`] === 'No');
             }
 
             getEpochDebt(row, epoch) {
                 const feeAmount = row[`dz_fee_lamports_${epoch}`];
-                const isPaid = row[`paid_${epoch}`] === 'Yes';
+                const isPaid = row[`is_paid_${epoch}`] === 'Yes';
                 
                 if (feeAmount && feeAmount !== 'NA' && !isPaid) {
                     return parseFloat(feeAmount) / 1e9; // Convert lamports to SOL
@@ -769,7 +771,7 @@
             }
 
             renderEpochCell(row, epoch) {
-                const isPaid = row[`paid_${epoch}`] === 'Yes';
+                const isPaid = row[`is_paid_${epoch}`] === 'Yes';
                 const feeAmount = row[`dz_fee_lamports_${epoch}`];
                 
                 if (feeAmount === 'NA' || !feeAmount) {
